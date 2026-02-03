@@ -2,13 +2,17 @@
 VPN клиент со встроенным DPI bypass функционалом
 Маскирует трафик и применяет техники избежания обнаружения
 """
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import socket
 import struct
 import threading
 import time
 import logging
-from crypto_engine import CryptoEngine, HandshakeProtocol
-from obfuscation import TrafficObfuscator, DPIBypass
+from engine.crypto_engine import CryptoEngine, HandshakeProtocol
+from engine.obfuscation import TrafficObfuscator, DPIBypass
 
 logging.basicConfig(
     level=logging.DEBUG,

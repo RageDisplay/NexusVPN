@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  vpn-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "443:443/tcp"      # HTTPS
+      - "80:80/tcp"        # HTTP
+      - "1194:1194/udp"    # OpenVPN (опционально)
+    environment:
+      - VPN_HOST=0.0.0.0
+      - VPN_PORT=443
+      - VPN_PASSWORD=pass
+      - VPN_OBFUSCATION=https
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - vpn-network
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.forwarding=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Опциональный мониторинг
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - vpn-network
+    restart: unless-stopped
+
+networks:
+  vpn-network:
+    driver: bridge
+
+volumes:
+  logs:
